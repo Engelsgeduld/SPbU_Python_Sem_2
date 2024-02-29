@@ -1,6 +1,6 @@
 from typing import Mapping
 
-from src.homeworks.homework_1.registry import Registry
+from src.homeworks.homework_1.task_1.registry import Registry
 import pytest
 
 
