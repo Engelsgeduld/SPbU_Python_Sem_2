@@ -52,7 +52,7 @@ def test_registry_dispatch_exception():
 
 def test_diff_registers():
     mapping_register_two = Registry()[Mapping]
-    mapping_register_two.register(name = "dict")(dict)
+    mapping_register_two.register(name="dict")(dict)
     assert getattr(mapping_register_two, "register_of_names") != getattr(MAPPING_REGISTER_1, "register_of_names")
 
 
@@ -60,5 +60,3 @@ def test_diff_registers():
 def test_registry_normal(name, cls):
     MAPPING_REGISTER_1.register(name)(cls)
     assert isinstance(MAPPING_REGISTER_1.dispatch(name)(), cls)
-
-
