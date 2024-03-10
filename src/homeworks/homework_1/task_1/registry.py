@@ -1,8 +1,8 @@
-from typing import Callable
+from typing import Callable, Self
 
 
 class Registry:
-    def __getitem__(self, item: type):
+    def __getitem__(self, item: type) -> Self:
         self.main_class = item
         return self
 
