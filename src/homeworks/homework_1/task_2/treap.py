@@ -1,6 +1,6 @@
 import random
 from copy import deepcopy
-from typing import TypeVar, MutableMapping, Iterable, Callable, Optional, Any, Generic, Iterator
+from typing import Any, Callable, Generic, Iterable, Iterator, MutableMapping, Optional, TypeVar
 
 Value = TypeVar("Value")
 Key = TypeVar("Key")

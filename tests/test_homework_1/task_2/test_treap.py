@@ -1,8 +1,8 @@
 import random
 
 import pytest
-from src.homeworks.homework_1.task_2.treap import Treap
 
+from src.homeworks.homework_1.task_2.treap import Treap
 
 TEST_KEYS = [random.uniform(0, 10) for _ in range(1000)]
 TEST_VALUES = [random.uniform(0, 10) for _ in range(1000)]
