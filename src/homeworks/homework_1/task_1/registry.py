@@ -13,7 +13,7 @@ class Registry:
     def register(self, name: str) -> Callable:
         def decorator(cls: type) -> type:
             if not issubclass(cls, self.main_class):
-                raise Exception(f"{cls.__name__} is not a subclass of {self.main_class.__name__}")
+                raise ValueError(f"{cls.__name__} is not a subclass of {self.main_class.__name__}")
             self.register_of_names[name] = cls
             return cls
 
@@ -23,5 +23,5 @@ class Registry:
         if name in self.register_of_names:
             return self.register_of_names[name]
         if self.default is None:
-            raise Exception(f"{name} realisation not registered")
+            raise ValueError(f"{name} realisation not registered")
         return self.default

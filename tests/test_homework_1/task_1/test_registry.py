@@ -41,12 +41,12 @@ def test_registry_dispatch():
 
 
 def test_registry_wrong_parent_class():
-    with pytest.raises(Exception):
+    with pytest.raises(ValueError):
         MAPPING_REGISTER_1.register(name="wrong")(TestClassObj)
 
 
 def test_registry_dispatch_exception():
-    with pytest.raises(Exception):
+    with pytest.raises(ValueError):
         OBJECT_REGISTER_1.dispatch("wrong")
 
 
