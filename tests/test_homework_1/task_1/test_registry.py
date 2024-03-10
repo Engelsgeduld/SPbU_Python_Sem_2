@@ -1,8 +1,8 @@
 from typing import Mapping
 
-from src.homeworks.homework_1.task_1.registry import Registry
 import pytest
 
+from src.homeworks.homework_1.task_1.registry import Registry
 
 MAPPING_REGISTER_1 = Registry(default=dict)[Mapping]
 OBJECT_REGISTER_1 = Registry()[object]
