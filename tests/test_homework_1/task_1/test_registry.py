@@ -4,8 +4,8 @@ import pytest
 
 from src.homeworks.homework_1.task_1.registry import Registry
 
-MAPPING_REGISTER_1 = Registry(default=dict)[Mapping]
-OBJECT_REGISTER_1 = Registry()[object]
+MAPPING_REGISTER_1 = Registry[Mapping](default=dict)
+OBJECT_REGISTER_1 = Registry[object]()
 
 
 @MAPPING_REGISTER_1.register(name="mapping")
@@ -32,31 +32,32 @@ class TestClassObj(object):
     pass
 
 
-def test_registry_default():
-    assert isinstance(MAPPING_REGISTER_1.dispatch("obj")(), dict)
+class TestClassExceptions:
+    def test_registry_dispatch_exception(self):
+        with pytest.raises(ValueError):
+            OBJECT_REGISTER_1.dispatch("wrong")
+
+    def test_register_exception(self):
+        with pytest.raises(ValueError):
+
+            @MAPPING_REGISTER_1.register(name="mapping")
+            class SomeRealisation(dict):
+                pass
 
 
-def test_registry_dispatch():
-    assert isinstance(MAPPING_REGISTER_1.dispatch("mapping")(), TestClassMapping)
+class TestClassNormalScenario:
+    def test_registry_default(self):
+        assert isinstance(MAPPING_REGISTER_1.dispatch("obj")(), dict)
 
+    def test_registry_dispatch(self):
+        assert isinstance(MAPPING_REGISTER_1.dispatch("mapping")(), TestClassMapping)
 
-def test_registry_wrong_parent_class():
-    with pytest.raises(ValueError):
-        MAPPING_REGISTER_1.register(name="wrong")(TestClassObj)
+    def test_diff_registers(self):
+        mapping_register_two = Registry[Mapping]()
+        mapping_register_two.register(name="dict")(dict)
+        assert getattr(mapping_register_two, "register_of_names") != getattr(MAPPING_REGISTER_1, "register_of_names")
 
-
-def test_registry_dispatch_exception():
-    with pytest.raises(ValueError):
-        OBJECT_REGISTER_1.dispatch("wrong")
-
-
-def test_diff_registers():
-    mapping_register_two = Registry()[Mapping]
-    mapping_register_two.register(name="dict")(dict)
-    assert getattr(mapping_register_two, "register_of_names") != getattr(MAPPING_REGISTER_1, "register_of_names")
-
-
-@pytest.mark.parametrize("name, cls", [("dict", dict), ("testmappingsubclass", TestMappingSubclass)])
-def test_registry_normal(name, cls):
-    MAPPING_REGISTER_1.register(name)(cls)
-    assert isinstance(MAPPING_REGISTER_1.dispatch(name)(), cls)
+    @pytest.mark.parametrize("name, cls", [("dict", dict), ("testmappingsubclass", TestMappingSubclass)])
+    def test_registry_normal(self, name, cls):
+        MAPPING_REGISTER_1.register(name)(cls)
+        assert isinstance(MAPPING_REGISTER_1.dispatch(name)(), cls)
