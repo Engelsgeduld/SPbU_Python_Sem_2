@@ -1,5 +1,4 @@
 import tempfile
-from random import randint
 
 import hypothesis.strategies as st
 import pytest
