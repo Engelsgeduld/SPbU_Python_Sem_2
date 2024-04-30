@@ -39,7 +39,6 @@ class TestPrinter:
 class TestMain:
     def test_main_file_exception(self):
         main = Main()
-        with (tempfile.NamedTemporaryFile(suffix=".png") as file, pytest.raises(ValueError)):
+        with tempfile.NamedTemporaryFile(suffix=".png") as file, pytest.raises(ValueError):
             path = file.name.replace(".png", "")
             main.script(1, [5], [3, 4], path)
-
