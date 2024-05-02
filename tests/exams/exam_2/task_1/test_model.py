@@ -21,5 +21,3 @@ class TestModel:
         model = Model(10, "https://башорг.рф/")
         result = model.parse_request(request_num)
         assert all([type(line) is str for line in result])
-
-
