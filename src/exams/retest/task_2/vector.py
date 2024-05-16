@@ -62,7 +62,7 @@ class Vector(Generic[T]):
     def is_zero(self) -> bool:
         return not any(self.coords)
 
-    def __mul__(self, vector: "Vector") -> T:
+    def __mul__(self, vector: "Vector") -> T | int:
         self._len_check(self, vector)
         return sum(list(map(lambda x, y: x * y, self.coords, vector.coords)))
 
