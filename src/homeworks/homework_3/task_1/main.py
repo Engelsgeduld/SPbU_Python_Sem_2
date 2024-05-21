@@ -3,7 +3,7 @@ from contextlib import contextmanager
 from typing import Any, Generator, MutableSequence
 
 from src.homeworks.homework_1.task_1.registry import Registry
-from src.homeworks.homework_3.task_1.PCS import PCS, ActionRegistry
+from src.homeworks.homework_3.task_1.PerformedCommandStorage import ACTIONS_REGISTRY, PerformedCommandStorage
 
 MENU_LINE = "View - see available actions\nRedo - redo the action\nCollection - Current Collection View\nEXIT"
 
@@ -11,9 +11,9 @@ MENU_LINE = "View - see available actions\nRedo - redo the action\nCollection - 
 class Main:
     def __init__(self) -> None:
         self.user_commands = Registry[object]()
-        self.actions = ActionRegistry()
+        self.actions = ACTIONS_REGISTRY
         self.collection: MutableSequence[int] = []
-        self.pcs = PCS(self.collection)
+        self.pcs = PerformedCommandStorage(self.collection)
 
     @staticmethod
     @contextmanager
@@ -30,7 +30,7 @@ class Main:
 
     def user_commands_fill(self) -> None:
         commands = {
-            "View": lambda: print(*self.actions.all_actions().keys(), sep=" "),
+            "View": lambda: print(*self.actions.register_of_names.keys(), sep=" "),
             "Redo": self.pcs.redo,
             "EXIT": lambda: exit(),
             "Collection": lambda: print(f"current_collection: {self.collection}"),
@@ -47,7 +47,7 @@ class Main:
         except ValueError:
             command, args = self.input_parser(line)
             with self.context_manager():
-                action = self.actions[command]
+                action = self.actions.dispatch(command)
                 implement_action = action(*action.args_validation(args))
                 self.pcs.apply(implement_action)
 

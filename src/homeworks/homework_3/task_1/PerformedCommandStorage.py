@@ -1,53 +1,22 @@
-from typing import MutableSequence, Type
+from typing import Any, MutableSequence
 
 from src.homeworks.homework_1.task_1.registry import Registry
+from src.homeworks.homework_3.task_1.StorageExceptions import *
 
 
 class Action:
-    def standard_func(self, collection: MutableSequence[int]) -> None:
+    def forward(self, collection: MutableSequence[int]) -> None:
         pass
 
-    def redo_func(self, collection: MutableSequence[int]) -> None:
-        pass
-
-    def validation(self, collection: MutableSequence[int]) -> None:
+    def backward(self, collection: MutableSequence[int]) -> None:
         pass
 
     @staticmethod
-    def args_validation(args: list[str]) -> list:
-        return []
-
-
-class EmptyActionListError(Exception):
-    def __init__(self) -> None:
-        super().__init__("Actions list is empty. Nothing to redo")
-
-
-class NoImplementedActionError(Exception):
-    def __init__(self, action_name: str) -> None:
-        super().__init__(f"{action_name} is not implemented")
-
-
-class NotSupportedCollectionTypeError(Exception):
-    def __init__(self, collection_type: str) -> None:
-        super().__init__(f"{collection_type} is not supported")
+    def args_validation(args: list[str]) -> Any:
+        pass
 
 
 ACTIONS_REGISTRY = Registry[Action]()
-
-
-class ActionRegistry:
-    def __init__(self) -> None:
-        self.registry = ACTIONS_REGISTRY
-
-    def __getitem__(self, name: str) -> Type[Action]:
-        try:
-            return self.registry.dispatch(name)
-        except ValueError:
-            raise NoImplementedActionError(name)
-
-    def all_actions(self) -> dict[str, Type[Action]]:
-        return self.registry.register_of_names
 
 
 class NoArgsActionParse:
@@ -87,10 +56,10 @@ class FrontInsert(InsertArgsParse, Action):
     def __init__(self, item: int):
         self.item = item
 
-    def standard_func(self, collection: MutableSequence[int]) -> None:
+    def forward(self, collection: MutableSequence[int]) -> None:
         collection.insert(0, self.item)
 
-    def redo_func(self, collection: MutableSequence[int]) -> None:
+    def backward(self, collection: MutableSequence[int]) -> None:
         collection.pop(0)
 
 
@@ -99,10 +68,10 @@ class BackInsert(InsertArgsParse, Action):
     def __init__(self, item: int):
         self.item = item
 
-    def standard_func(self, collection: MutableSequence[int]) -> None:
+    def forward(self, collection: MutableSequence[int]) -> None:
         collection.append(self.item)
 
-    def redo_func(self, collection: MutableSequence[int]) -> None:
+    def backward(self, collection: MutableSequence[int]) -> None:
         collection.pop(-1)
 
 
@@ -112,16 +81,16 @@ class Move(MoveAdditionArgsParse, Action):
         self.index_one = index_one
         self.index_two = index_two
 
-    def standard_func(self, collection: MutableSequence[int]) -> None:
+    def forward(self, collection: MutableSequence[int]) -> None:
         self.validation(collection)
         first_elem = collection.pop(self.index_one)
         second_elem = collection.pop(self.index_two - 1)
         collection.insert(self.index_one, second_elem)
         collection.insert(self.index_two, first_elem)
 
-    def redo_func(self, collection: MutableSequence[int]) -> None:
+    def backward(self, collection: MutableSequence[int]) -> None:
         self.validation(collection)
-        self.standard_func(collection)
+        self.forward(collection)
 
     def validation(self, collection: MutableSequence[int]) -> None:
         if len(collection) < 2:
@@ -140,11 +109,11 @@ class Addition(MoveAdditionArgsParse, Action):
         self.index = index
         self.value = value
 
-    def standard_func(self, collection: MutableSequence[int]) -> None:
+    def forward(self, collection: MutableSequence[int]) -> None:
         self.validation(collection)
         collection[self.index] += self.value
 
-    def redo_func(self, collection: MutableSequence[int]) -> None:
+    def backward(self, collection: MutableSequence[int]) -> None:
         self.validation(collection)
         collection[self.index] -= self.value
 
@@ -155,10 +124,10 @@ class Addition(MoveAdditionArgsParse, Action):
 
 @ACTIONS_REGISTRY.register("Reverse")
 class Reverse(NoArgsActionParse, Action):
-    def standard_func(self, collection: MutableSequence[int]) -> None:
+    def forward(self, collection: MutableSequence[int]) -> None:
         collection.reverse()
 
-    def redo_func(self, collection: MutableSequence[int]) -> None:
+    def backward(self, collection: MutableSequence[int]) -> None:
         collection.reverse()
 
 
@@ -169,11 +138,11 @@ class Multiply(MoveAdditionArgsParse, Action):
         self.value = value
         self.original_value = 0
 
-    def standard_func(self, collection: MutableSequence[int]) -> None:
+    def forward(self, collection: MutableSequence[int]) -> None:
         self.original_value = collection[self.index]
         collection[self.index] *= self.value
 
-    def redo_func(self, collection: MutableSequence[int]) -> None:
+    def backward(self, collection: MutableSequence[int]) -> None:
         collection[self.index] = self.original_value
 
     def validation(self, collection: MutableSequence[int]) -> None:
@@ -186,11 +155,11 @@ class FrontDelete(NoArgsActionParse, Action):
     def __init__(self) -> None:
         self.original_value = 0
 
-    def standard_func(self, collection: MutableSequence[int]) -> None:
+    def forward(self, collection: MutableSequence[int]) -> None:
         self.validation(collection)
         self.original_value = collection.pop(0)
 
-    def redo_func(self, collection: MutableSequence[int]) -> None:
+    def backward(self, collection: MutableSequence[int]) -> None:
         collection.insert(0, self.original_value)
 
     def validation(self, collection: MutableSequence[int]) -> None:
@@ -203,11 +172,11 @@ class BackDelete(NoArgsActionParse, Action):
     def __init__(self) -> None:
         self.original_value = 0
 
-    def standard_func(self, collection: MutableSequence[int]) -> None:
+    def forward(self, collection: MutableSequence[int]) -> None:
         self.validation(collection)
         self.original_value = collection.pop(-1)
 
-    def redo_func(self, collection: MutableSequence[int]) -> None:
+    def backward(self, collection: MutableSequence[int]) -> None:
         collection.insert(len(collection), self.original_value)
 
     def validation(self, collection: MutableSequence[int]) -> None:
@@ -217,11 +186,11 @@ class BackDelete(NoArgsActionParse, Action):
 
 @ACTIONS_REGISTRY.register("SignChange")
 class SignChange(NoArgsActionParse, Action):
-    def standard_func(self, collection: MutableSequence[int]) -> None:
+    def forward(self, collection: MutableSequence[int]) -> None:
         for i in range(len(collection)):
             collection[i] *= -1
 
-    def redo_func(self, collection: MutableSequence[int]) -> None:
+    def backward(self, collection: MutableSequence[int]) -> None:
         for i in range(len(collection)):
             collection[i] *= -1
 
@@ -232,12 +201,12 @@ class TransitElement(MoveAdditionArgsParse, Action):
         self.pos_of_element = pos_of_element
         self.new_pos = new_pos
 
-    def standard_func(self, collection: MutableSequence[int]) -> None:
+    def forward(self, collection: MutableSequence[int]) -> None:
         self.validation(collection)
         element = collection.pop(self.pos_of_element)
         collection.insert(self.new_pos, element)
 
-    def redo_func(self, collection: MutableSequence[int]) -> None:
+    def backward(self, collection: MutableSequence[int]) -> None:
         element = collection.pop(self.new_pos)
         collection.insert(self.pos_of_element, element)
 
@@ -252,12 +221,12 @@ class TransitElement(MoveAdditionArgsParse, Action):
 
 @ACTIONS_REGISTRY.register("SumAdd")
 class SumAdd(NoArgsActionParse, Action):
-    def standard_func(self, collection: MutableSequence[int]) -> None:
+    def forward(self, collection: MutableSequence[int]) -> None:
         self.validation(collection)
         sum_of_elements = sum(collection)
         collection.append(sum_of_elements)
 
-    def redo_func(self, collection: MutableSequence[int]) -> None:
+    def backward(self, collection: MutableSequence[int]) -> None:
         collection.pop(-1)
 
     def validation(self, collection: MutableSequence[int]) -> None:
@@ -265,7 +234,7 @@ class SumAdd(NoArgsActionParse, Action):
             raise ValueError("Collection is empty")
 
 
-class PCS:
+class PerformedCommandStorage:
     def __init__(self, collection: MutableSequence[int]) -> None:
         if not isinstance(collection, MutableSequence):
             raise NotSupportedCollectionTypeError(type(collection).__name__)
@@ -273,11 +242,11 @@ class PCS:
         self.collection = collection
 
     def apply(self, action: Action) -> None:
-        action.standard_func(self.collection)
+        action.forward(self.collection)
         self.actions.append(action)
 
     def redo(self) -> None:
         if len(self.collection) == 0:
             raise EmptyActionListError()
         action = self.actions.pop(-1)
-        action.redo_func(self.collection)
+        action.backward(self.collection)
