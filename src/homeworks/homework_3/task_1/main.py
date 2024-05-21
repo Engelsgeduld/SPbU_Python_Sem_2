@@ -4,6 +4,7 @@ from typing import Any, Generator, MutableSequence
 
 from src.homeworks.homework_1.task_1.registry import Registry
 from src.homeworks.homework_3.task_1.PerformedCommandStorage import ACTIONS_REGISTRY, PerformedCommandStorage
+from src.homeworks.homework_3.task_1.StorageExceptions import NoImplementedActionError
 
 MENU_LINE = "View - see available actions\nRedo - redo the action\nCollection - Current Collection View\nEXIT"
 
@@ -47,7 +48,10 @@ class Main:
         except ValueError:
             command, args = self.input_parser(line)
             with self.context_manager():
-                action = self.actions.dispatch(command)
+                try:
+                    action = self.actions.dispatch(command)
+                except ValueError:
+                    raise NoImplementedActionError(command)
                 implement_action = action(*action.args_validation(args))
                 self.pcs.apply(implement_action)
 
