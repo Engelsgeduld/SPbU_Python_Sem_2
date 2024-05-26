@@ -13,41 +13,44 @@ class Node(Generic[Key, Value]):
         self.left: Optional[Node] = None
         self.right: Optional[Node] = None
 
+    @staticmethod
     def inner_merge(
-        self: Optional["Node[Any, Any]"], right_node: Optional["Node[Any, Any]"]
+        left_node: Optional["Node[Any, Any]"], right_node: Optional["Node[Any, Any]"]
     ) -> Optional["Node[Any, Any]"]:
-        if self is None:
+        if left_node is None:
             return right_node
         if right_node is None:
-            return self
-        if self.prior > right_node.prior:
-            self.right = Node.inner_merge(self.right, right_node)
-            return self
+            return left_node
+        if left_node.prior > right_node.prior:
+            left_node.right = Node.inner_merge(left_node.right, right_node)
+            return left_node
         else:
-            right_node.left = self.inner_merge(right_node.left)
+            right_node.left = Node.inner_merge(left_node, right_node.left)
             return right_node
 
+    @staticmethod
     def inner_split(
-        self: Optional["Node[Any, Any]"], key: Key
+        node: Optional["Node[Any, Any]"], key: Key
     ) -> tuple[Optional["Node[Any, Any]"], Optional["Node[Any, Any]"]]:
-        if self is None:
+        if node is None:
             return None, None
-        if self.key < key:
-            first_root, second_root = Node.inner_split(self.right, key)
-            self.right = first_root
-            return self, second_root
+        if node.key < key:
+            first_root, second_root = Node.inner_split(node.right, key)
+            node.right = first_root
+            return node, second_root
         else:
-            first_root, second_root = Node.inner_split(self.left, key)
-            self.left = second_root
-            return first_root, self
+            first_root, second_root = Node.inner_split(node.left, key)
+            node.left = second_root
+            return first_root, node
 
+    @staticmethod
     def recursion_finding_node(
-        self, node: Optional["Node[Any, Any]"], key: Key
+        original_node, node: Optional["Node[Any, Any]"], key: Key
     ) -> Optional[tuple["Node[Any, Any]", "Node[Any, Any]"]]:
-        if node is None or self is None:
+        if node is None or original_node is None:
             return None
         if node.key == key:
-            return node, self
+            return node, original_node
         if node.key > key:
             return Node.recursion_finding_node(node, node.left, key)
         if node.key < key:
@@ -77,13 +80,13 @@ class Treap(MutableMapping, Generic[Key, Value]):
         if self.root is None:
             self.root = right_tree.root
         else:
-            self.root = self.root.inner_merge(right_tree.root)
+            self.root = self.root.inner_merge(self.root, right_tree.root)
 
     def _split(self, value: Key | object) -> tuple["Treap", "Treap"]:
         tree: "Treap" = Treap()
         if self.root is None:
             return self, tree
-        roots = self.root.inner_split(value)
+        roots = self.root.inner_split(self.root, value)
         self.root = roots[0]
         tree.root = roots[1]
         return self, tree
@@ -103,17 +106,14 @@ class Treap(MutableMapping, Generic[Key, Value]):
         self.root = first_tree.root
 
     def __contains__(self, key: object) -> bool:
-        if self.root is None:
-            return False
-        node = self.root.recursion_finding_node(self.root, key)
-        return True if node else False
+        return self.root.recursion_finding_node(self.root, self.root, key) if self.root else False
 
     def __getitem__(self, key: Key) -> Optional[Value]:
         if self.root is None:
             raise ValueError("Tree is empty")
         if not isinstance(key, type(self.root.key)):
             raise KeyError("Key type mismatch")
-        key_node = self.root.recursion_finding_node(self.root, key)
+        key_node = self.root.recursion_finding_node(self.root, self.root, key)
         if key_node is None:
             raise KeyError(f"Key not found")
         return key_node[0].value
@@ -141,11 +141,11 @@ class Treap(MutableMapping, Generic[Key, Value]):
     def __delitem__(self, key: Key) -> None:
         if self.root is None:
             raise IndexError("pop from empty tree")
-        pair = self.root.recursion_finding_node(self.root, key)
+        pair = self.root.recursion_finding_node(self.root, self.root, key)
         if pair is None:
             raise KeyError("Key not found")
         key_node, parent_node = pair
-        new_node = Node.inner_merge(key_node.left, key_node.right)
+        new_node = key_node.inner_merge(key_node.left, key_node.right)
         if key_node == self.root:
             self.root = new_node
         elif parent_node.left == key_node:
