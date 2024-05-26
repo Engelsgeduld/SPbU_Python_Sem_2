@@ -52,7 +52,7 @@ class Main:
                     action = self.actions.dispatch(command)
                 except ValueError:
                     raise NoImplementedActionError(command)
-                implement_action = action(*action.args_validation(args))
+                implement_action = action.init_with_validation(args)
                 self.pcs.apply(implement_action)
 
     def main_body(self) -> None:

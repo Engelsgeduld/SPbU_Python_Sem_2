@@ -190,20 +190,20 @@ class TestPCS:
 
 class TestParsers:
     def test_insert_parser(self):
-        parser = InsertArgsParse()
+        parser = SingleIntArgument()
         with pytest.raises(ValueError):
-            parser.args_validation(["123", "123"])
+            parser.init_with_validation(["123", "123"])
         with pytest.raises(ValueError):
-            parser.args_validation(["abc"])
+            parser.init_with_validation(["abc"])
 
     def test_addition_parser(self):
-        parser = MoveAdditionArgsParse()
+        parser = DoubleIntArgument()
         with pytest.raises(ValueError):
-            parser.args_validation(["123"])
+            parser.init_with_validation(["123"])
         with pytest.raises(ValueError):
-            parser.args_validation(["abc", "123"])
+            parser.init_with_validation(["abc", "123"])
 
     def test_no_args_parser(self):
-        parser = NoArgsActionParse()
+        parser = NoArgument()
         with pytest.raises(ValueError):
-            parser.args_validation(["1"])
+            parser.init_with_validation(["1"])

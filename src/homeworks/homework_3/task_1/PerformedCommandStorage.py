@@ -3,56 +3,61 @@ from typing import Any, MutableSequence
 from src.homeworks.homework_1.task_1.registry import Registry
 from src.homeworks.homework_3.task_1.StorageExceptions import *
 
+from typing import TYPE_CHECKING
+
 
 class Action:
+
+    if TYPE_CHECKING:  # let mypy know that args_validation is expected to exist
+
+        @classmethod
+        def init_with_validation(cls: Any, *args: Any) -> "Action":
+            pass
+
     def forward(self, collection: MutableSequence[int]) -> None:
         pass
 
     def backward(self, collection: MutableSequence[int]) -> None:
         pass
 
-    @staticmethod
-    def args_validation(args: list[str]) -> Any:
-        pass
-
 
 ACTIONS_REGISTRY = Registry[Action]()
 
 
-class NoArgsActionParse:
-    @staticmethod
-    def args_validation(args: list[str]) -> list:
+class NoArgument:
+    @classmethod
+    def init_with_validation(cls: Any, args: list[str]) -> Action:
         if len(args) > 0:
             raise ValueError("This Action have no arguments")
-        return []
+        return cls()
 
 
-class InsertArgsParse:
-    @staticmethod
-    def args_validation(args: list[str]) -> list[int]:
+class SingleIntArgument:
+    @classmethod
+    def init_with_validation(cls: Any, args: list[str]) -> Action:
         if len(args) != 1:
             raise ValueError(f"support only 1 arg")
         try:
-            item = [int(args[0])]
-            return item
+            item = int(args[0])
+            return cls(item)
         except ValueError:
             raise ValueError("Item should be an integer")
 
 
-class MoveAdditionArgsParse:
-    @staticmethod
-    def args_validation(args: list[str]) -> list[int]:
+class DoubleIntArgument:
+    @classmethod
+    def init_with_validation(cls: Any, args: list[str]) -> Action:
         if len(args) != 2:
             raise ValueError(f"require only 2 args")
         try:
             parsed_args = [int(args[0]), int(args[1])]
-            return parsed_args
+            return cls(*parsed_args)
         except ValueError:
             raise ValueError("Args should be an integer")
 
 
 @ACTIONS_REGISTRY.register("FrontInsert")
-class FrontInsert(InsertArgsParse, Action):
+class FrontInsert(SingleIntArgument, Action):
     def __init__(self, item: int):
         self.item = item
 
@@ -64,7 +69,7 @@ class FrontInsert(InsertArgsParse, Action):
 
 
 @ACTIONS_REGISTRY.register("BackInsert")
-class BackInsert(InsertArgsParse, Action):
+class BackInsert(SingleIntArgument, Action):
     def __init__(self, item: int):
         self.item = item
 
@@ -76,7 +81,7 @@ class BackInsert(InsertArgsParse, Action):
 
 
 @ACTIONS_REGISTRY.register("Move")
-class Move(MoveAdditionArgsParse, Action):
+class Move(DoubleIntArgument, Action):
     def __init__(self, index_one: int, index_two: int):
         self.index_one = index_one
         self.index_two = index_two
@@ -104,7 +109,7 @@ class Move(MoveAdditionArgsParse, Action):
 
 
 @ACTIONS_REGISTRY.register("Addition")
-class Addition(MoveAdditionArgsParse, Action):
+class Addition(DoubleIntArgument, Action):
     def __init__(self, index: int, value: int):
         self.index = index
         self.value = value
@@ -123,7 +128,7 @@ class Addition(MoveAdditionArgsParse, Action):
 
 
 @ACTIONS_REGISTRY.register("Reverse")
-class Reverse(NoArgsActionParse, Action):
+class Reverse(NoArgument, Action):
     def forward(self, collection: MutableSequence[int]) -> None:
         collection.reverse()
 
@@ -132,7 +137,7 @@ class Reverse(NoArgsActionParse, Action):
 
 
 @ACTIONS_REGISTRY.register("Multiply")
-class Multiply(MoveAdditionArgsParse, Action):
+class Multiply(DoubleIntArgument, Action):
     def __init__(self, index: int, value: int) -> None:
         self.index = index
         self.value = value
@@ -151,7 +156,7 @@ class Multiply(MoveAdditionArgsParse, Action):
 
 
 @ACTIONS_REGISTRY.register("FrontDelete")
-class FrontDelete(NoArgsActionParse, Action):
+class FrontDelete(NoArgument, Action):
     def __init__(self) -> None:
         self.original_value = 0
 
@@ -168,7 +173,7 @@ class FrontDelete(NoArgsActionParse, Action):
 
 
 @ACTIONS_REGISTRY.register("BackDelete")
-class BackDelete(NoArgsActionParse, Action):
+class BackDelete(NoArgument, Action):
     def __init__(self) -> None:
         self.original_value = 0
 
@@ -185,7 +190,7 @@ class BackDelete(NoArgsActionParse, Action):
 
 
 @ACTIONS_REGISTRY.register("SignChange")
-class SignChange(NoArgsActionParse, Action):
+class SignChange(NoArgument, Action):
     def forward(self, collection: MutableSequence[int]) -> None:
         for i in range(len(collection)):
             collection[i] *= -1
@@ -196,7 +201,7 @@ class SignChange(NoArgsActionParse, Action):
 
 
 @ACTIONS_REGISTRY.register("TransitElement")
-class TransitElement(MoveAdditionArgsParse, Action):
+class TransitElement(DoubleIntArgument, Action):
     def __init__(self, pos_of_element: int, new_pos: int) -> None:
         self.pos_of_element = pos_of_element
         self.new_pos = new_pos
@@ -220,7 +225,7 @@ class TransitElement(MoveAdditionArgsParse, Action):
 
 
 @ACTIONS_REGISTRY.register("SumAdd")
-class SumAdd(NoArgsActionParse, Action):
+class SumAdd(NoArgument, Action):
     def forward(self, collection: MutableSequence[int]) -> None:
         self.validation(collection)
         sum_of_elements = sum(collection)
