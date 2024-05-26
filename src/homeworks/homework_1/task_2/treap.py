@@ -45,7 +45,7 @@ class Node(Generic[Key, Value]):
 
     @staticmethod
     def recursion_finding_node(
-        original_node, node: Optional["Node[Any, Any]"], key: Key
+        original_node: Optional["Node[Any, Any]"], node: Optional["Node[Any, Any]"], key: Key
     ) -> Optional[tuple["Node[Any, Any]", "Node[Any, Any]"]]:
         if node is None or original_node is None:
             return None
@@ -106,7 +106,7 @@ class Treap(MutableMapping, Generic[Key, Value]):
         self.root = first_tree.root
 
     def __contains__(self, key: object) -> bool:
-        return self.root.recursion_finding_node(self.root, self.root, key) if self.root else False
+        return True if self.root and self.root.recursion_finding_node(self.root, self.root, key) else False
 
     def __getitem__(self, key: Key) -> Optional[Value]:
         if self.root is None:
