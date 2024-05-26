@@ -1,9 +1,7 @@
-from typing import Any, MutableSequence
+from typing import TYPE_CHECKING, Any, MutableSequence
 
 from src.homeworks.homework_1.task_1.registry import Registry
 from src.homeworks.homework_3.task_1.StorageExceptions import *
-
-from typing import TYPE_CHECKING
 
 
 class Action:
