@@ -20,5 +20,5 @@ jobs:
         run: isort . --check --diff
       - name: "mypy"
         run: mypy
-      - name: "pytests"
+      - name: "python -m pytest"
         run: pytest
