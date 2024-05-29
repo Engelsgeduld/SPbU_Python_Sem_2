@@ -3,12 +3,29 @@ from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
 from math import ceil
 from random import randint
 from timeit import timeit
-from typing import Callable
 
+import click
 import matplotlib.pyplot as plt
 
 
 class Model:
+
+    def another_parallel_merge_sort(
+        self, threads_count: int, lst: list[int], multiprocessing: bool = False
+    ) -> list[int]:
+        pool_executor = ProcessPoolExecutor if multiprocessing else ThreadPoolExecutor
+
+        def inner_merge(array: list[int], threads_count: int) -> list[int]:
+            if threads_count < 2:
+                return self.merge_sort(array)
+            middle = len(array) // 2
+            left = executor.submit(inner_merge, array[:middle], threads_count // 2)
+            right = executor.submit(inner_merge, array[middle:], threads_count // 2)
+            return self.merge([left.result(), right.result()])
+
+        with pool_executor(max_workers=threads_count) as executor:
+            return inner_merge(lst, threads_count)
+
     def merge_sort(self, lst: list[int]) -> list[int]:
         if len(lst) <= 1:
             return lst
@@ -22,21 +39,23 @@ class Model:
         if len(lst) != 2:
             raise ValueError("Merge require 2 data sets")
         left, right = lst
+        left_point, right_point = 0, 0
         result = []
-        while left and right:
-            if left[0] < right[0]:
-                result.append(left[0])
-                left.pop(0)
+        while left_point != len(left) and right_point != len(right):
+            if left[left_point] < right[right_point]:
+                result.append(left[left_point])
+                left_point += 1
             else:
-                result.append(right[0])
-                right.pop(0)
-        if left:
-            result += left
-        if right:
-            result += right
+                result.append(right[right_point])
+                right_point += 1
+        if left_point != len(left):
+            result += left[left_point:]
+        else:
+            result += right[right_point:]
         return result
 
-    def parallel_merge_sort(self, data: list[int], threads_count: int, pool_executor: Callable) -> list[int]:
+    def parallel_merge_sort(self, data: list[int], threads_count: int, multiprocessing: bool = False) -> list[int]:
+        pool_executor = ProcessPoolExecutor if multiprocessing else ThreadPoolExecutor
         if threads_count <= 0:
             raise ValueError("Threads/Process count should be positive")
         size = ceil(len(data) / threads_count)
@@ -50,11 +69,14 @@ class Model:
         return sorted_data[0]
 
     def parallel_sort_time(self, data: list[int], threads_count: int, multiprocessing: bool = False) -> float:
-        executor = ProcessPoolExecutor if multiprocessing else ThreadPoolExecutor
-        return timeit(lambda: self.parallel_merge_sort(data, threads_count, executor), number=100)
+
+        return timeit(lambda: self.parallel_merge_sort(data, threads_count, multiprocessing), number=100)
 
     def base_sort_time(self, data: list[int]) -> float:
         return timeit(lambda: self.merge_sort(data), number=100)
+
+    def another_sort_time(self, data: list[int], threads_count: int, multiprocessing: bool = False) -> float:
+        return timeit(lambda: self.another_parallel_merge_sort(threads_count, data, multiprocessing), number=100)
 
 
 class Printer:
@@ -75,23 +97,35 @@ class Printer:
         plt.show()
 
 
-class Main:
-    @staticmethod
-    def script(len_data: int, data: list[int], threads: list[int], output_path: str) -> None:
-        if os.path.exists(f"{output_path}.png"):
-            raise ValueError(f"Output file ({output_path}) already exists")
-        printer = Printer()
-        model = Model()
-        mult_pros_data = [model.parallel_sort_time(data, thread, True) for thread in threads]
-        thread_data = [model.parallel_sort_time(data, thread) for thread in threads]
-        basic_data = [model.base_sort_time(data)] * len(threads)
-        data_sets = [mult_pros_data, thread_data, basic_data]
-        printer.create_figure(threads, len_data, data_sets, ["multiprocessing", "threading", "BASE"], output_path)
+def script(len_data: int, data: list[int], threads: list[int], output_path: str) -> None:
+    if os.path.exists(f"{output_path}.png"):
+        raise ValueError(f"Output file ({output_path}) already exists")
+    printer = Printer()
+    model = Model()
+    mult_pros_data = [model.parallel_sort_time(data, thread, True) for thread in threads]
+    thread_data = [model.parallel_sort_time(data, thread) for thread in threads]
+    another_thread_data = [model.parallel_sort_time(data, thread) for thread in threads]
+    another_process_data = [model.parallel_sort_time(data, thread, True) for thread in threads]
+    basic_data = [model.base_sort_time(data)] * len(threads)
+    data_sets = [mult_pros_data, thread_data, basic_data, another_thread_data, another_process_data]
+    printer.create_figure(
+        threads,
+        len_data,
+        data_sets,
+        ["multiprocessing", "threading", "BASE", "vanilla with threads", "vanilla with process"],
+        output_path,
+    )
+
+
+@click.command(name="start")
+@click.argument("len_data", type=click.IntRange(min=1))
+@click.argument("treads_number", type=click.IntRange(min=1))
+@click.argument("output_path")
+def start(len_data: int, treads_number: int, output_path: str) -> None:
+    data = [randint(-100, 100) for _ in range(len_data)]
+    threads = list(range(1, treads_number))
+    script(len_data, data, threads, output_path)
 
 
 if __name__ == "__main__":
-    main = Main()
-    len_data = 100_000
-    threads = list(range(1, 9))
-    data = [randint(-100, 100) for _ in range(len_data)]
-    main.script(len_data, data, threads, "result_release")
+    start()
