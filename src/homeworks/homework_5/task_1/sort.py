@@ -9,7 +9,6 @@ import matplotlib.pyplot as plt
 
 
 class Model:
-
     def another_parallel_merge_sort(
         self, threads_count: int, lst: list[int], multiprocessing: bool = False
     ) -> list[int]:
@@ -69,7 +68,6 @@ class Model:
         return sorted_data[0]
 
     def parallel_sort_time(self, data: list[int], threads_count: int, multiprocessing: bool = False) -> float:
-
         return timeit(lambda: self.parallel_merge_sort(data, threads_count, multiprocessing), number=100)
 
     def base_sort_time(self, data: list[int]) -> float:
