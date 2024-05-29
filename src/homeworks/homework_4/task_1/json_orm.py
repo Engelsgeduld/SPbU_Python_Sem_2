@@ -10,51 +10,47 @@ from src.homeworks.homework_4.task_1.ORMExceptions import FieldError, NotFoundFi
 
 class Descriptor:
     def __init__(
-        self, field_name: str, field_type: type, reader: JsonReader, path: str, strict: bool = False, number: int = -1
+        self, field_name: str, field_type: Any, reader: JsonReader, path: str, strict: bool = False, value: Any = None
     ) -> None:
         self.field_name = field_name
         self.field_type = field_type
-        self.value = None
         self.reader = reader
         self.path = path
         self.strict = strict
-        self.number = number
+        self.value = value
 
     def __set__(self, instance: object, value: Any) -> None:
         instance.__dict__[self.field_name] = value
 
     def __get__(self, instance: object, owner: Any) -> Any:
         if not isinstance(instance, ORM):
-            raise FieldError("Filed must be an instance of APIMeta")
+            raise FieldError("Field must be an instance of APIMeta")
         value = instance.__dict__[self.field_name]
         if value:
             return value
-        if self.number == -1:
-            try:
-                request_value = self.reader.read_from_obj(self.field_name, self.path)
-            except NotFoundFieldError as e:
-                if self.strict:
-                    raise StrictError(e)
-                request_value = None
-        else:
-            try:
-                request_value = self.reader.read_from_list(f"{self.path}.{self.field_name}", self.number)
-            except NotFoundFieldError as e:
-                if self.strict:
-                    raise StrictError(e)
-                request_value = None
-            self.number += 1
+        if isinstance(self.value, list):
+            inited_dataclasses = [data_cls(*[None] * len(fields(data_cls))) for data_cls in self.value]
+            instance.__dict__[self.field_name] = inited_dataclasses
+            return inited_dataclasses
+        if self.value:
+            data_cls = self.field_type(*[None] * len(fields(self.field_type)))
+            instance.__dict__[self.field_name] = data_cls
+            return data_cls
+        try:
+            request_value = self.reader.get_data(self.path, self.field_name)
+        except NotFoundFieldError as e:
+            if self.strict:
+                raise StrictError(e)
+            request_value = None
         if request_value is not None and not isinstance(request_value, self.field_type):
             raise TypeError(f"{self.field_name} must be {self.field_type}")
+        instance.__dict__[self.field_name] = request_value
         return request_value
-
-    def add_path(self) -> None:
-        self.number = 0
 
 
 class ORM:
     @classmethod
-    def set_descriptors(cls: Any, reader: JsonReader, strict: bool = False, path: str = "", count: int = -1) -> Any:
+    def set_descriptors(cls: Any, reader: JsonReader, strict: bool = False, path: str = "") -> Any:
         dataclass_fields = fields(cls)
         for field in dataclass_fields:
             field_type = field.type
@@ -62,52 +58,40 @@ class ORM:
             origin_type = get_origin(field_type)
             if origin_type and issubclass(inner_type, ORM):
                 length = reader.get_length_of_list(f"item")
-                dataclasses = [
-                    inner_type.set_descriptors(reader, strict, f"item", n_count) for n_count in range(length)
-                ]
+                dataclasses = [inner_type.set_descriptors(reader, strict, f"item") for _ in range(length)]
                 setattr(
                     cls,
                     field.name,
-                    dataclasses,
+                    Descriptor(field.name, field_type, reader, path, strict, dataclasses),
                 )
             elif issubclass(get_type_hints(cls)[field.name], ORM):
                 new_path = f"{path}.{field.name}" if path != "" else field.name
-                setattr(cls, field.name, field_type.set_descriptors(reader, strict, new_path, count))
+                descriptor_args = [
+                    field.name,
+                    field_type,
+                    reader,
+                    path,
+                    strict,
+                    field_type.set_descriptors(reader, strict, new_path),
+                ]
+                setattr(cls, field.name, Descriptor(*descriptor_args))
             else:
-                if field.name in cls.__dict__ and count != -1:
-                    cls.__dict__[field.name].add_path()
-                else:
-                    field_type = origin_type if origin_type else field_type
-                    setattr(
-                        cls,
-                        field.name,
-                        Descriptor(field.name, field_type, reader, path, strict, count),
-                    )
+                field_type = origin_type if origin_type else field_type
+                setattr(
+                    cls,
+                    field.name,
+                    Descriptor(field.name, field_type, reader, path, strict),
+                )
         return cls
 
     @classmethod
     def set_dataclass(cls: Any, reader: JsonReader, strict: bool = False) -> Any:
         cls.set_descriptors(reader, strict)
+        args = [None] * len(fields(cls))
+        return cls(*args)
 
-        def set_recursion(cls: Any) -> ORM:
-            args: list[ORM | list[ORM] | None] = []
-            for field_name, filed_type in get_type_hints(cls).items():
-                origin = get_origin(filed_type)
-                sub = get_args(filed_type)[0] if origin else None
-                if issubclass(filed_type, ORM):
-                    args.append(set_recursion(filed_type))
-                elif origin and issubclass(sub, ORM):
-                    args.append([set_recursion(key) for key in cls.__dict__[field_name]])
-                else:
-                    args.append(None)
-            return cls(*args)
-
-        return set_recursion(cls)
-
-
-class DataClassDumper:
-    def dump(self, data_class: Any, name: str) -> None:
-        dataclass_dict = asdict(data_class)
+    def dump(self: Any, name: str) -> None:
+        dataclass_dict = asdict(self)
         json_str = json.dumps(dataclass_dict, indent=2)
         with open(f"{name}.json", "x") as f:
             f.write(json_str)
