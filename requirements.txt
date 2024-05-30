@@ -1,1 +1,4 @@
+click==8.1.7
+ijson==3.1.4
+requests == 2.31.0
 numpy==1.26.4
