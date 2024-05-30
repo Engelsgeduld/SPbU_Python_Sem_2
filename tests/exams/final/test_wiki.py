@@ -29,7 +29,14 @@ class TestNormalScenario:
             "https://en.wikipedia.org/wiki/Adolf_Hitler",
         ]
         wiki = WikiGrandTour(
-            10, 8, False, ["https://en.wikipedia.org/wiki/United_States", "https://en.wikipedia.org/wiki/Adolf_Hitler"]
+            10,
+            8,
+            False,
+            [
+                "https://en.wikipedia.org/wiki/United_States",
+                "https://en.wikipedia.org/wiki/Eminem",
+                "https://en.wikipedia.org/wiki/Adolf_Hitler",
+            ],
         )
         assert wiki.find_road() == expected
 
