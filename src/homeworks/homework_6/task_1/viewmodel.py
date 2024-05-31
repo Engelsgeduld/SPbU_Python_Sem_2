@@ -29,7 +29,6 @@ Models_Register = Registry[IViewModel]()
 
 
 class ViewModelSwapMixin:
-
     _root: Tk
     current_view: Optional[ttk.Frame] = None
 
@@ -168,7 +167,6 @@ class ChoiceViewModel(ViewModelSwapMixin, IViewModel):
 
 @Models_Register.register("MChoice")
 class LocalMultiplayerChoiceViewModel(ViewModelSwapMixin, IViewModel):
-
     def __init__(self, root: Tk) -> None:
         self._root = root
 
