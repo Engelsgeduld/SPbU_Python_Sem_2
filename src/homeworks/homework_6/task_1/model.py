@@ -96,7 +96,7 @@ class Game:
         self.field = np.zeros(shape=(length, length))
         self.players = players
         self.current_player = self.players[0]
-        self.game_status: Observable[Player|int|None] = Observable(1)
+        self.game_status: Observable[Player | int | None] = Observable(1)
 
     def eog_check(self) -> None:
         sums = (

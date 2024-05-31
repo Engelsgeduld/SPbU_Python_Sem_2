@@ -54,7 +54,7 @@ class FieldViewModel(ViewModelSwapMixin, IViewModel):
             self._model.do_move()
         for row in range(self._length):
             for col in range(self._length):
-                view.buttons[row][col].config(command=(lambda row_i=row, col_i=col: self.button_request(row_i, col_i))) #type: ignore
+                view.buttons[row][col].config(command=(lambda row_i=row, col_i=col: self.button_request(row_i, col_i)))  # type: ignore
         view.new_game_button.config(command=lambda: self.swap("Main", [self._root]))
 
     def button_request(self, row: int, col: int) -> None:

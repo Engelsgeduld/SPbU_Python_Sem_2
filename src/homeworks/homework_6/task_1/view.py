@@ -90,13 +90,13 @@ class SChoiceView(ttk.Frame):
         self.grid_columnconfigure(1, weight=1)
 
         self.first_choice_button = ttk.Button(self, text="First turn")
-        self.first_choice_button.grid(row=3, column=0, pady = 10)
+        self.first_choice_button.grid(row=3, column=0, pady=10)
         self.second_choice_button = ttk.Button(self, text="Second turn")
-        self.second_choice_button.grid(row=3, column=2, pady = 10)
+        self.second_choice_button.grid(row=3, column=2, pady=10)
 
         self.name_entry = ttk.Entry(self)
         self.name_entry.insert(0, "Enter nickname")
-        self.name_entry.grid(row=1, column = 1)
+        self.name_entry.grid(row=1, column=1)
 
 
 class LocalMultiplayerChoiceView(ttk.Frame):
@@ -106,15 +106,15 @@ class LocalMultiplayerChoiceView(ttk.Frame):
         self.grid_columnconfigure(0, weight=0)
         self.grid_columnconfigure(1, weight=1)
 
-        self.first_choice_button = ttk.Button(self,text="Player 1 first")
+        self.first_choice_button = ttk.Button(self, text="Player 1 first")
         self.first_choice_button.grid(row=1, column=1)
         self.second_choice_button = ttk.Button(self, text="Player 2 first")
         self.second_choice_button.grid(row=1, column=2)
 
         self.first_name_entry = ttk.Entry(self)
         self.first_name_entry.insert(0, "Enter name of first player")
-        self.first_name_entry.grid(row=0, column=1, padx = 5)
+        self.first_name_entry.grid(row=0, column=1, padx=5)
 
         self.second_name_entry = ttk.Entry(self)
         self.second_name_entry.insert(0, "Enter name of first player")
-        self.second_name_entry.grid(row=0, column=2, padx = 5)
+        self.second_name_entry.grid(row=0, column=2, padx=5)
