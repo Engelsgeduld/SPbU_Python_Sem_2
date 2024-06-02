@@ -1,6 +1,6 @@
 from tkinter import Tk
 
-from viewmodel import MainViewModel
+from src.homeworks.homework_6.task_1.viewmodel import MainViewModel
 
 
 class App:

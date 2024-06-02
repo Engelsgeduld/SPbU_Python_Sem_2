@@ -19,11 +19,11 @@ class TestBasicFuncs:
             game.do_move()
         for i in range(3):
             for j in range(3):
-                assert game.correct_move_check((i, j)) is False
+                assert game.check_move_correctness((i, j)) == 0
 
     @pytest.mark.parametrize("execution_number", range(10))
     def test_beast_bot(self, execution_number):
-        players = BeastPlayer("bot", 1), BeastPlayer("bot", 1)
+        players = BeastPlayer("bot", 1), BeastPlayer("bot", -1)
         game = Game(3, players)
         for _ in range(3 * 3):
             game.do_move()

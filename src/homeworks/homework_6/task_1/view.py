@@ -116,5 +116,39 @@ class LocalMultiplayerChoiceView(ttk.Frame):
         self.first_name_entry.grid(row=0, column=1, padx=5)
 
         self.second_name_entry = ttk.Entry(self)
-        self.second_name_entry.insert(0, "Enter name of first player")
+        self.second_name_entry.insert(0, "Enter name of second player")
         self.second_name_entry.grid(row=0, column=2, padx=5)
+
+
+class MultiplayerCommandView(ttk.Frame):
+    def __init__(self, root: Tk) -> None:
+        super().__init__(root)
+
+        self.grid_columnconfigure(0, weight=0)
+        self.grid_columnconfigure(1, weight=1)
+
+        self.create_button = ttk.Button(self, text="Create Room")
+        self.create_button.grid(row=2, column=1)
+        self.connect_button = ttk.Button(self, text="Connect to Room")
+        self.connect_button.grid(row=2, column=2)
+
+        self.ip_entry = ttk.Entry(self)
+        self.ip_entry.insert(0, "Enter IP")
+        self.ip_entry.grid(row=1, column=1, sticky=W)
+
+        self.room_name_entry = ttk.Entry(self)
+        self.room_name_entry.insert(0, "Enter Room Name")
+        self.room_name_entry.grid(row=1, column=2, sticky=W)
+
+
+class CreateView(ttk.Frame):
+    def __init__(self, root: Tk) -> None:
+        super().__init__(root)
+
+        self.grid_columnconfigure(0, weight=0)
+        self.grid_columnconfigure(1, weight=1)
+
+        self.first_choice_button = ttk.Button(self, text="First turn")
+        self.first_choice_button.grid(row=3, column=0, pady=10)
+        self.second_choice_button = ttk.Button(self, text="Second turn")
+        self.second_choice_button.grid(row=3, column=2, pady=10)
